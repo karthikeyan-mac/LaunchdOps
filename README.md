@@ -102,6 +102,18 @@ log stream --info --predicate 'subsystem == "com.karthikmac.LaunchdOps" AND cate
 
 File contents, environment values, keys and tokens are never logged; signing identity names are logged as private.
 
+## Signing and notarization setup
+
+Signing and notarization are optional. Without them LaunchdOps still validates and exports every file. Setting them up needs an Apple Developer Program membership. Settings ▸ Signing in the app explains each step too.
+
+- **Developer ID Installer certificate** (signs the `.pkg`): [Creating Developer ID certificates](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/). Developer ID Application certificates, used for signing apps, are covered on the same page.
+- **Signing the Managed Login Items profile** (optional) uses a Developer ID Application, Apple Development or Apple Distribution certificate: [Certificates overview](https://developer.apple.com/help/account/certificates/certificates-overview/).
+- **App Store Connect API key** (for notarization): create a **Team key** and download its `.p8` file. Apple's [App Store Connect API key instructions](https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api) describe the steps. The private key can be downloaded only once. Keep the Key ID and the Issuer ID, which LaunchdOps asks for. Apple's [Developer Program roles](https://developer.apple.com/support/roles/) list who can create Team keys and what each role can access.
+  - Individual keys can't be used for notarization. Apple's page says they can't use `notaryTool`.
+- **Notarization and stapling:** [Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution) explains the process. [Customizing the notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow) covers `notarytool` and `stapler`, which LaunchdOps uses behind the scenes.
+
+LaunchdOps keeps the API key in your keychain. It never goes in a project, a log or a preference file.
+
 ## Building
 
 You need a Mac with Xcode 16 or later. LaunchdOps has no third-party dependencies.
@@ -115,7 +127,7 @@ You need a Mac with Xcode 16 or later. LaunchdOps has no third-party dependencie
 
 For a universal app (Apple silicon and Intel), choose **Product ▸ Archive**; Release builds include both architectures.
 
-Signing packages, signing profiles and notarizing inside the app need your own Developer ID certificates and App Store Connect API key (LaunchdOps ▸ Settings ▸ Signing explains how to get them). Everything else works without them.
+Signing packages, signing profiles and notarizing inside the app need your own Developer ID certificates and App Store Connect API key (see [Signing and notarization setup](#signing-and-notarization-setup)). Everything else works without them.
 
 The project uses folder-synchronized groups: files added to `LaunchdOps/` or `LaunchdOpsTests/` are picked up automatically.
 
