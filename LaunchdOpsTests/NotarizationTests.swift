@@ -41,32 +41,6 @@ struct AppStoreConnectTokenTests {
     #expect(key.publicKey.isValidSignature(signature, for: Data("\(parts[0]).\(parts[1])".utf8)))
   }
 
-  @Test func individualKeyTokenUsesSubjectInsteadOfIssuer() throws {
-    let key = P256.Signing.PrivateKey()
-    let credentials = NotaryCredentials(
-      kind: .individual, issuerID: "", keyID: "2X9R4HXF34", privateKeyPEM: key.pemRepresentation)
-    let token = try AppStoreConnectToken.make(credentials: credentials, now: Date(timeIntervalSince1970: 1_800_000_000))
-    var base64 = String(token.split(separator: ".")[1]).replacingOccurrences(of: "-", with: "+")
-      .replacingOccurrences(of: "_", with: "/")
-    base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
-    let payloadData = try #require(Data(base64Encoded: base64))
-    let payload = try #require(try JSONSerialization.jsonObject(with: payloadData) as? [String: Any])
-    #expect(payload["sub"] as? String == "user")
-    #expect(payload["iss"] == nil)
-    #expect(payload["aud"] as? String == "appstoreconnect-v1")
-  }
-
-  @Test func individualKeyNeedsNoIssuerAndOldKeysDecodeAsTeam() throws {
-    let pem = P256.Signing.PrivateKey().pemRepresentation
-    #expect(throws: Never.self) {
-      try NotaryCredentials(kind: .individual, issuerID: "", keyID: "ABCDE12345", privateKeyPEM: pem).validate()
-    }
-    let saved = try JSONSerialization.data(withJSONObject: [
-      "issuerID": UUID().uuidString, "keyID": "ABCDE12345", "privateKeyPEM": pem,
-    ])
-    #expect(try JSONDecoder().decode(NotaryCredentials.self, from: saved).kind == .team)
-  }
-
   @Test func credentialValidation() {
     let key = P256.Signing.PrivateKey().pemRepresentation
     let valid = NotaryCredentials(issuerID: UUID().uuidString, keyID: "ABCDE12345", privateKeyPEM: key)

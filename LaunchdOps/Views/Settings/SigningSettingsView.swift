@@ -120,10 +120,6 @@ struct SigningSettingsView: View {
                 "Click Generate API Key (or +), enter a name, choose the Developer role, and click Generate.",
                 "Download the .p8 file. Apple lets you download it only once, so keep it safe.",
                 "Note the Key ID in the list and the Issuer ID above it, then click Set Up… here and enter them.",
-                """
-                No admin access? Use an individual key: click your name ▸ Edit Profile ▸ Individual API Key ▸ \
-                Generate Key. Individual keys have no Issuer ID.
-                """,
               ],
               link: SigningHelp.apiKeys
             )

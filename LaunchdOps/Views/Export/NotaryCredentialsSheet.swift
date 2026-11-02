@@ -7,7 +7,6 @@ struct NotaryCredentialsSheet: View {
   let onSaved: () -> Void
 
   @Environment(\.dismiss) private var dismiss
-  @State private var kind = NotaryCredentials.KeyKind.team
   @State private var issuerID = ""
   @State private var keyID = ""
   @State private var privateKeyPEM = ""
@@ -21,8 +20,7 @@ struct NotaryCredentialsSheet: View {
 
   private var credentials: NotaryCredentials {
     NotaryCredentials(
-      kind: kind,
-      issuerID: kind == .team ? issuerID.trimmingCharacters(in: .whitespacesAndNewlines) : "",
+      issuerID: issuerID.trimmingCharacters(in: .whitespacesAndNewlines),
       keyID: keyID.trimmingCharacters(in: .whitespacesAndNewlines),
       privateKeyPEM: privateKeyPEM
     )
@@ -43,32 +41,15 @@ struct NotaryCredentialsSheet: View {
         Text("Notarization Key")
           .font(.headline)
         Text(
-          "LaunchdOps notarizes packages with an App Store Connect API key. Create one in App Store Connect ▸ Users and Access ▸ Integrations."
+          "LaunchdOps notarizes packages with a team key from App Store Connect ▸ Users and Access ▸ Integrations ▸ Team Keys. Give it the Developer role. Individual keys can't notarize."
         )
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
       }
 
-      VStack(spacing: 8) {
-        ChoiceRow(
-          title: "Team Key",
-          detail: "Created by an Account Holder or Admin under Team Keys. Give it the Developer role.",
-          isSelected: kind == .team
-        ) { kind = .team }
-        ChoiceRow(
-          title: "Individual Key",
-          detail: "Any team member can create one for themselves under Individual Keys. No issuer ID needed.",
-          isSelected: kind == .individual
-        ) { kind = .individual }
-      }
-      .accessibilityElement(children: .contain)
-      .accessibilityLabel("Key type")
-
       Form {
-        if kind == .team {
-          TextField("Issuer ID", text: $issuerID, prompt: Text("57246542-96fe-1a63-e053-0824d011072a"))
-            .monospaced()
-        }
+        TextField("Issuer ID", text: $issuerID, prompt: Text("57246542-96fe-1a63-e053-0824d011072a"))
+          .monospaced()
         TextField("Key ID", text: $keyID, prompt: Text("2X9R4HXF34"))
           .monospaced()
         LabeledContent("Key File") {
@@ -133,7 +114,6 @@ struct NotaryCredentialsSheet: View {
   private func loadSaved() {
     do {
       guard let saved = try NotaryCredentialStore.load() else { return }
-      kind = saved.kind
       issuerID = saved.issuerID
       keyID = saved.keyID
       privateKeyPEM = saved.privateKeyPEM

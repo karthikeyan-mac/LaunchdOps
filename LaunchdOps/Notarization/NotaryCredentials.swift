@@ -3,23 +3,17 @@ import Foundation
 import Security
 
 /// An App Store Connect API key, used to sign requests to Apple's notary service.
+///
+/// Only team keys are accepted: Apple's notary service doesn't accept individual keys. A saved key that has no issuer
+/// ID (from an earlier build) decodes with an empty issuer ID, so validation asks for it again.
 struct NotaryCredentials: Codable, Equatable, Sendable {
-  enum KeyKind: String, Codable, Sendable {
-    /// Created by an Account Holder or Admin for the team; tokens name the issuer ID.
-    case team
-    /// Created by any team member for themselves; tokens use `sub: user` and have no issuer ID.
-    case individual
-  }
-
-  var kind = KeyKind.team
-  /// Team keys only; empty for individual keys.
+  /// The team's issuer ID from App Store Connect ▸ Users and Access ▸ Integrations.
   var issuerID: String
   var keyID: String
   /// The contents of the downloaded `AuthKey_<KeyID>.p8` file (PEM, PKCS #8, P-256).
   var privateKeyPEM: String
 
-  init(kind: KeyKind = .team, issuerID: String, keyID: String, privateKeyPEM: String) {
-    self.kind = kind
+  init(issuerID: String, keyID: String, privateKeyPEM: String) {
     self.issuerID = issuerID
     self.keyID = keyID
     self.privateKeyPEM = privateKeyPEM
@@ -27,8 +21,6 @@ struct NotaryCredentials: Codable, Equatable, Sendable {
 
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    // Keys saved before individual keys were supported are team keys.
-    kind = try container.decodeIfPresent(KeyKind.self, forKey: .kind) ?? .team
     issuerID = try container.decodeIfPresent(String.self, forKey: .issuerID) ?? ""
     keyID = try container.decode(String.self, forKey: .keyID)
     privateKeyPEM = try container.decode(String.self, forKey: .privateKeyPEM)
@@ -52,9 +44,7 @@ struct NotaryCredentials: Codable, Equatable, Sendable {
   }
 
   func validate() throws(ValidationError) {
-    if kind == .team {
-      guard UUID(uuidString: issuerID.trimmingCharacters(in: .whitespacesAndNewlines)) != nil else { throw .issuerID }
-    }
+    guard UUID(uuidString: issuerID.trimmingCharacters(in: .whitespacesAndNewlines)) != nil else { throw .issuerID }
     guard keyID.trimmingCharacters(in: .whitespacesAndNewlines).wholeMatch(of: /[A-Z0-9]{10}/) != nil else {
       throw .keyID
     }

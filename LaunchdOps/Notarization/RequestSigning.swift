@@ -1,8 +1,7 @@
 import CryptoKit
 import Foundation
 
-/// App Store Connect API token: a JWT signed with ES256. Team keys name the issuer (`iss`); individual keys use
-/// `sub: user` instead.
+/// App Store Connect API token: a JWT signed with ES256. The token names the team's issuer (`iss`).
 enum AppStoreConnectToken {
   /// Apple accepts tokens that live at most 20 minutes.
   static let lifetime: TimeInterval = 15 * 60
@@ -19,10 +18,7 @@ enum AppStoreConnectToken {
       "exp": issuedAt + Int(lifetime),
       "aud": "appstoreconnect-v1",
     ]
-    switch credentials.kind {
-    case .team: payload["iss"] = credentials.issuerID.trimmingCharacters(in: .whitespacesAndNewlines)
-    case .individual: payload["sub"] = "user"
-    }
+    payload["iss"] = credentials.issuerID.trimmingCharacters(in: .whitespacesAndNewlines)
     let encoder: (Any) throws -> String = {
       try base64URL(JSONSerialization.data(withJSONObject: $0, options: [.sortedKeys, .withoutEscapingSlashes]))
     }
