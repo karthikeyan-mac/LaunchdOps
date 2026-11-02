@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM
+.build/
+*.moved-aside
+*.hmap
+*.perspectivev3
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+
+# Internal planning and design notes
+docs/
