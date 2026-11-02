@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0 (in development)
+## 1.0 (2026-11-02)
 
 - Release preparation: the README lists every keyboard shortcut, Project ▸ Show Plist XML… ends with an ellipsis because it opens a sheet, the Delete key removes a focused payload file, and the error for a project from a newer format tells you to update LaunchdOps. A test covers the newer-format error.
 - Fixed: `sudo ./check.sh --collect` made its folder in `/private/tmp` readable only by root, so Finder couldn't open it. The folder and its files now belong to the admin who ran `sudo` (from `SUDO_UID`) and stay mode 700, so other users still can't read the logs.
