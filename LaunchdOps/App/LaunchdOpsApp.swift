@@ -73,7 +73,6 @@ struct LibraryCommands: Commands {
         .keyboardShortcut("n", modifiers: .command)
         .disabled(actions == nil)
       Button("Import Project…") { actions?.importProject() }
-        .keyboardShortcut("o", modifiers: .command)
         .disabled(actions == nil)
     }
     CommandGroup(replacing: .saveItem) {
@@ -147,7 +146,7 @@ struct HelpCommands: Commands {
 
   var body: some Commands {
     CommandGroup(replacing: .help) {
-      Button("LaunchdOps Help") { actions?.showHelp() }
+      Button("LaunchdOps Help…") { actions?.showHelp() }
         .keyboardShortcut("?", modifiers: .command)
         .disabled(actions == nil)
       Button("View Logs") { actions?.openLogInConsole() }

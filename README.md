@@ -70,7 +70,6 @@ Every command is also in the menu bar. The Delete key removes the selected job i
 | Shortcut | Command |
 | --- | --- |
 | ⌘N | File ▸ New Job… |
-| ⌘O | File ▸ Import Project… |
 | ⌘D | Project ▸ Duplicate Job |
 | ⇧⌘I | Project ▸ Import Launchd Plists… |
 | ⌥⌘A | Project ▸ Add Payload Files… |
