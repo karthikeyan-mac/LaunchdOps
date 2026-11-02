@@ -77,7 +77,9 @@ struct OptionsTab: View {
     } header: {
       Text("When to Run")
     } footer: {
-      Text("Start Interval skips runs while the Mac is asleep. Apple recommends avoiding Run at Load because it slows startup.")
+      Text(
+        "Start Interval skips runs while the Mac is asleep. Apple recommends avoiding Run at Load because it slows startup."
+      )
     }
   }
 

@@ -97,7 +97,7 @@ private struct PayloadEditor: View {
     (0o755, "755 · Executable"),
     (0o700, "700 · Executable, root only"),
     (0o644, "644 · Readable"),
-    (0o600, "600 · Root only")
+    (0o600, "600 · Root only"),
   ]
 
   var body: some View {

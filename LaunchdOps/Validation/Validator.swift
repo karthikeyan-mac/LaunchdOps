@@ -10,7 +10,8 @@ enum Validator {
       issues += jobIssues(job, in: project)
     }
     var seen = Set<String>()
-    return issues
+    return
+      issues
       .filter { seen.insert($0.id).inserted }
       .sorted { $0.severity > $1.severity }
   }
@@ -25,7 +26,8 @@ enum Validator {
     var issues: [ValidationIssue] = []
     let identity = project.settings.signingIdentity
     if project.settings.notarizeAfterExport && !identity.isEmpty && !identity.hasPrefix("Developer ID Installer:") {
-      let message = "Apple notarizes only packages signed with a Developer ID Installer identity. Choose one in "
+      let message =
+        "Apple notarizes only packages signed with a Developer ID Installer identity. Choose one in "
         + "Settings ▸ Signing, or turn off Notarize After Export."
       issues.append(ValidationIssue("package.notarize-identity", .error, message, source: .packaging))
     }
@@ -63,56 +65,62 @@ enum Validator {
     let labels = project.jobs.map(\.label).filter { !$0.isEmpty }
     for label in Set(labels) where labels.filter({ $0 == label }).count > 1 {
       for job in project.jobs where job.label == label {
-        issues.append(.init(
-          "label.duplicate", .error,
-          "The label \(label) is used by more than one job. Each job needs a unique label.",
-          source: .launchdPlist, job: job.id
-        ))
+        issues.append(
+          .init(
+            "label.duplicate", .error,
+            "The label \(label) is used by more than one job. Each job needs a unique label.",
+            source: .launchdPlist, job: job.id
+          ))
       }
     }
 
     for retired in settings.retiredLabels {
       if !isValidLabel(retired) {
-        issues.append(.init(
-          "retired.invalid", .error,
-          "Retired label \"\(retired)\" contains characters that are not allowed.",
-          source: .packaging, detail: retired
-        ))
+        issues.append(
+          .init(
+            "retired.invalid", .error,
+            "Retired label \"\(retired)\" contains characters that are not allowed.",
+            source: .packaging, detail: retired
+          ))
       } else if labels.contains(retired) {
-        issues.append(.init(
-          "retired.current", .warning,
-          "\(retired) is listed as retired but is still a job in this project. The upgrade script will remove it.",
-          source: .packaging, detail: retired
-        ))
+        issues.append(
+          .init(
+            "retired.current", .warning,
+            "\(retired) is listed as retired but is still a job in this project. The upgrade script will remove it.",
+            source: .packaging, detail: retired
+          ))
       }
     }
 
     switch settings.mode {
     case .package:
       if !isValidLabel(settings.packageIdentifier) || !settings.packageIdentifier.contains(".") {
-        issues.append(.init(
-          "package.identifier", .error,
-          "Enter a reverse-DNS package identifier, for example com.example.pkg.backup.",
-          source: .packaging, blocking: !isValidLabel(settings.packageIdentifier)
-        ))
+        issues.append(
+          .init(
+            "package.identifier", .error,
+            "Enter a reverse-DNS package identifier, for example com.example.pkg.backup.",
+            source: .packaging, blocking: !isValidLabel(settings.packageIdentifier)
+          ))
       }
       if settings.version.wholeMatch(of: /[0-9]+(\.[0-9]+)*/) == nil {
-        issues.append(.init(
-          "package.version", .error,
-          "Enter a numeric package version such as 1.0 or 2.1.3.",
-          source: .packaging
-        ))
+        issues.append(
+          .init(
+            "package.version", .error,
+            "Enter a numeric package version such as 1.0 or 2.1.3.",
+            source: .packaging
+          ))
       }
       if settings.includePackage && settings.packageOutput == .installerPackage {
         issues.append(contentsOf: installerPackageIssues(project))
       }
     case .declarative:
       if !isValidLabel(settings.taskType) || !settings.taskType.contains(".") {
-        issues.append(.init(
-          "ddm.task-type", .error,
-          "DDM background tasks need a reverse-DNS task type.",
-          source: .backgroundTasks, blocking: !isValidLabel(settings.taskType)
-        ))
+        issues.append(
+          .init(
+            "ddm.task-type", .error,
+            "DDM background tasks need a reverse-DNS task type.",
+            source: .backgroundTasks, blocking: !isValidLabel(settings.taskType)
+          ))
       } else if let daemon = project.daemons.first, daemon.label != settings.taskType {
         // Some MDMs require the task type to equal the daemon label (for example Jamf Pro Blueprints; see Der Flounder's DDM background task walkthrough, 2025-06-10).
         let message =
@@ -120,11 +128,12 @@ enum Validator {
           + "them to match; click Use Daemon Label on the Export tab."
         issues.append(.init("ddm.task-type-label", .warning, message, source: .backgroundTasks))
       }
-      issues.append(.init(
-        "ddm.requirements", .info,
-        "DDM background tasks require macOS 15 or later and supervised enrollment.",
-        source: .backgroundTasks
-      ))
+      issues.append(
+        .init(
+          "ddm.requirements", .info,
+          "DDM background tasks require macOS 15 or later and supervised enrollment.",
+          source: .backgroundTasks
+        ))
     }
     return issues
   }
@@ -140,29 +149,32 @@ enum Validator {
       installPaths[path, default: 0] += 1
 
       if let problem = SafeInstallPath.problem(withName: file.name) {
-        issues.append(.init(
-          "payload.name", .error,
-          "The payload file name \"\(file.name)\" \(problem.message). Rename the file and add it again.",
-          source: .security, detail: file.id.uuidString, blocking: true
-        ))
+        issues.append(
+          .init(
+            "payload.name", .error,
+            "The payload file name \"\(file.name)\" \(problem.message). Rename the file and add it again.",
+            source: .security, detail: file.id.uuidString, blocking: true
+          ))
       }
       let destinationProblem =
         project.settings.mode == .package
         ? SafeInstallPath.problem(withFolder: file.destination)
         : SafeInstallPath.problem(withSubfolder: file.destination)
       if let destinationProblem {
-        issues.append(.init(
-          "payload.destination", .error,
-          "The destination for \(file.name) \(destinationProblem.message).",
-          source: .security, detail: file.id.uuidString, blocking: true
-        ))
+        issues.append(
+          .init(
+            "payload.destination", .error,
+            "The destination for \(file.name) \(destinationProblem.message).",
+            source: .security, detail: file.id.uuidString, blocking: true
+          ))
       }
       if file.mode & 0o022 != 0 {
-        issues.append(.init(
-          "payload.writable", .error,
-          "\(file.name) is writable by users other than root. A job could be hijacked by modifying it.",
-          source: .security, detail: file.id.uuidString, blocking: true
-        ))
+        issues.append(
+          .init(
+            "payload.writable", .error,
+            "\(file.name) is writable by users other than root. A job could be hijacked by modifying it.",
+            source: .security, detail: file.id.uuidString, blocking: true
+          ))
       }
 
       issues += binaryIssues(file, project: project)
@@ -170,28 +182,31 @@ enum Validator {
       if project.settings.mode == .package {
         let protected = ["/System", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/usr/lib", "/usr/libexec"]
         if protected.contains(where: { file.destination == $0 || file.destination.hasPrefix($0 + "/") }) {
-          issues.append(.init(
-            "payload.sip", .error,
-            "\(file.destination) is protected by System Integrity Protection. Use /usr/local or /Library instead.",
-            source: .packaging, detail: file.id.uuidString
-          ))
+          issues.append(
+            .init(
+              "payload.sip", .error,
+              "\(file.destination) is protected by System Integrity Protection. Use /usr/local or /Library instead.",
+              source: .packaging, detail: file.id.uuidString
+            ))
         }
         if isUserWritableLocation(file.destination) {
-          issues.append(.init(
-            "payload.user-location", .error,
-            "\(file.name) installs to a user-writable location. Jobs must run code only from root-owned folders.",
-            source: .security, detail: file.id.uuidString
-          ))
+          issues.append(
+            .init(
+              "payload.user-location", .error,
+              "\(file.name) installs to a user-writable location. Jobs must run code only from root-owned folders.",
+              source: .security, detail: file.id.uuidString
+            ))
         }
       }
     }
 
     for (path, count) in installPaths where count > 1 {
-      issues.append(.init(
-        "payload.duplicate", .error,
-        "More than one payload file installs to \(path).",
-        source: .packaging, detail: path
-      ))
+      issues.append(
+        .init(
+          "payload.duplicate", .error,
+          "More than one payload file installs to \(path).",
+          source: .packaging, detail: path
+        ))
     }
     issues.append(contentsOf: payloadSizeIssues(project))
     return issues
@@ -311,25 +326,28 @@ enum Validator {
     }
     // With Program set, ProgramArguments is the whole argv: its first item is only the process name.
     if !job.program.isEmpty, let first = arguments.first, first.hasPrefix("-") {
-      add("program.argv0-option", .warning,
-          "\(first) is the first argument, which launchd passes as the process name when Program is set, so the "
-            + "program never receives it. Make the program path the first argument, or clear Program.",
-          .launchdPlist, "")
+      add(
+        "program.argv0-option", .warning,
+        "\(first) is the first argument, which launchd passes as the process name when Program is set, so the "
+          + "program never receives it. Make the program path the first argument, or clear Program.",
+        .launchdPlist, "")
     }
     if !job.program.isEmpty && !job.program.hasPrefix("/") {
       add("program.relative", .error, "Program must be an absolute path.", .launchdPlist, "")
     }
     if job.program.isEmpty, let first = arguments.first, !first.isEmpty, !first.hasPrefix("/") {
-      add("arguments.relative", .warning,
-          "\(first) is not an absolute path. launchd resolves it using the standard PATH, which is fragile.",
-          .launchdPlist, "")
+      add(
+        "arguments.relative", .warning,
+        "\(first) is not an absolute path. launchd resolves it using the standard PATH, which is fragile.",
+        .launchdPlist, "")
     }
 
     let executable = job.executablePath
     if job.context != .userAgent && isUserWritableLocation(executable) {
-      add("program.user-writable", .error,
-          "\(executable) is in a user-writable location. Anyone who can change it can run code as this job.",
-          .security, "")
+      add(
+        "program.user-writable", .error,
+        "\(executable) is in a user-writable location. Anyone who can change it can run code as this job.",
+        .security, "")
     } else if job.context == .daemon, project.settings.mode == .package, executable.hasPrefix("/"),
       !isSystemLocation(executable), !project.payload.contains(where: { project.installPath(for: $0) == executable })
     {
@@ -346,17 +364,21 @@ enum Validator {
     if !usesShell {
       let metacharacters: [Character] = ["$", "`", "|", ">", "<", ";", "*"]
       for (index, argument) in arguments.enumerated()
-      where argument.hasPrefix("~") || argument.contains(where: { metacharacters.contains($0) }) || argument.contains("&&") {
-        add("arguments.shell", .warning,
-            "Argument \"\(argument)\" uses shell syntax. launchd does not expand ~, variables, pipes or wildcards.",
-            .launchdPlist, String(index))
+      where argument.hasPrefix("~") || argument.contains(where: { metacharacters.contains($0) })
+        || argument.contains("&&")
+      {
+        add(
+          "arguments.shell", .warning,
+          "Argument \"\(argument)\" uses shell syntax. launchd does not expand ~, variables, pipes or wildcards.",
+          .launchdPlist, String(index))
       }
     }
 
     if let file = project.payload.first(where: { project.installPath(for: $0) == executable }), !file.isExecutable {
-      add("program.not-executable", .error,
-          "\(file.name) is used as the program but its mode (\(file.modeString)) is not executable.",
-          .packaging, "")
+      add(
+        "program.not-executable", .error,
+        "\(file.name) is used as the program but its mode (\(file.modeString)) is not executable.",
+        .packaging, "")
     }
 
     // Apple's declaration doesn't restrict program paths, but only files inside the task folder are delivered by
@@ -383,27 +405,31 @@ enum Validator {
     add: (String, IssueSeverity, String, IssueSource, String) -> Void
   ) {
     if job.context.isAgent && (!job.userName.isEmpty || !job.groupName.isEmpty || job.initGroups != nil) {
-      add("context.agent-user", .warning,
-          "UserName, GroupName and InitGroups only apply to daemons. launchd ignores them for agents.",
-          .launchdPlist, "")
+      add(
+        "context.agent-user", .warning,
+        "UserName, GroupName and InitGroups only apply to daemons. launchd ignores them for agents.",
+        .launchdPlist, "")
     }
     if job.context == .daemon && !job.sessionTypes.isEmpty {
-      add("context.daemon-session", .warning,
-          "LimitLoadToSessionType only applies to agents. There are no sessions in the system domain.",
-          .launchdPlist, "")
+      add(
+        "context.daemon-session", .warning,
+        "LimitLoadToSessionType only applies to agents. There are no sessions in the system domain.",
+        .launchdPlist, "")
     }
     if job.context == .userAgent {
       switch project.settings.mode {
       case .package:
-        add("context.user-agent", .info,
-            "The package installs this agent in the logged-in user’s ~/Library/LaunchAgents and loads it. If "
-              + "nobody is logged in, it isn’t installed, and other users don’t get it; to cover every user, make "
-              + "it a Launch Agent (All Users).",
-            .packaging, "")
+        add(
+          "context.user-agent", .info,
+          "The package installs this agent in the logged-in user’s ~/Library/LaunchAgents and loads it. If "
+            + "nobody is logged in, it isn’t installed, and other users don’t get it; to cover every user, make "
+            + "it a Launch Agent (All Users).",
+          .packaging, "")
       case .declarative:
-        add("ddm.user-agent", .error,
-            "DDM background tasks support daemons and agents for all users, not per-user agents.",
-            .backgroundTasks, "")
+        add(
+          "ddm.user-agent", .error,
+          "DDM background tasks support daemons and agents for all users, not per-user agents.",
+          .backgroundTasks, "")
       }
     }
   }
@@ -413,7 +439,8 @@ enum Validator {
     add: (String, IssueSeverity, String, IssueSource, String) -> Void
   ) {
     let demandKeys = ["MachServices", "Sockets", "LaunchEvents"]
-    let hasTrigger = job.runAtLoad
+    let hasTrigger =
+      job.runAtLoad
       || job.startInterval != nil
       || !job.calendarIntervals.isEmpty
       || !job.watchPaths.isEmpty
@@ -422,22 +449,25 @@ enum Validator {
       || job.keepAlive.mode != .off
       || demandKeys.contains { job.additionalKeys[$0] != nil }
     if !hasTrigger {
-      add("trigger.none", .warning,
-          "Nothing starts this job. Add a schedule, RunAtLoad or KeepAlive, or it only runs when kickstarted.",
-          .launchdPlist, "")
+      add(
+        "trigger.none", .warning,
+        "Nothing starts this job. Add a schedule, RunAtLoad or KeepAlive, or it only runs when kickstarted.",
+        .launchdPlist, "")
     }
     if job.runAtLoad {
-      add("trigger.run-at-load", .info,
-          "Apple recommends avoiding RunAtLoad because speculative launches slow startup and login.",
-          .launchdPlist, "")
+      add(
+        "trigger.run-at-load", .info,
+        "Apple recommends avoiding RunAtLoad because speculative launches slow startup and login.",
+        .launchdPlist, "")
     }
     if let interval = job.startInterval {
       if interval <= 0 {
         add("interval.invalid", .error, "StartInterval must be greater than zero.", .launchdPlist, "")
       } else if interval < 10 {
-        add("interval.throttled", .warning,
-            "launchd spawns a job at most once every 10 seconds by default, so intervals under 10 seconds are throttled.",
-            .launchdPlist, "")
+        add(
+          "interval.throttled", .warning,
+          "launchd spawns a job at most once every 10 seconds by default, so intervals under 10 seconds are throttled.",
+          .launchdPlist, "")
       }
     }
 
@@ -447,56 +477,65 @@ enum Validator {
         ("Hour", interval.hour, 0...23),
         ("Day", interval.day, 1...31),
         ("Weekday", interval.weekday, 0...7),
-        ("Month", interval.month, 1...12)
+        ("Month", interval.month, 1...12),
       ]
       for (name, value, range) in ranges {
         if let value, !range.contains(value) {
-          add("calendar.range", .error,
-              "\(name) must be between \(range.lowerBound) and \(range.upperBound).",
-              .launchdPlist, "\(index)-\(name)")
+          add(
+            "calendar.range", .error,
+            "\(name) must be between \(range.lowerBound) and \(range.upperBound).",
+            .launchdPlist, "\(index)-\(name)")
         }
       }
       if interval.isEmpty {
-        add("calendar.empty", .warning,
-            "An empty calendar interval matches every minute.", .launchdPlist, "\(index)-empty")
+        add(
+          "calendar.empty", .warning,
+          "An empty calendar interval matches every minute.", .launchdPlist, "\(index)-empty")
       }
       if interval.day != nil && interval.weekday != nil {
-        add("calendar.day-weekday", .info,
-            "When both Day and Weekday are set, the job runs if either one matches.",
-            .launchdPlist, "\(index)-either")
+        add(
+          "calendar.day-weekday", .info,
+          "When both Day and Weekday are set, the job runs if either one matches.",
+          .launchdPlist, "\(index)-either")
       }
     }
 
     if !job.watchPaths.isEmpty {
-      add("watch-paths.discouraged", .warning,
-          "Apple discourages WatchPaths because file system monitoring can miss changes.",
-          .launchdPlist, "")
+      add(
+        "watch-paths.discouraged", .warning,
+        "Apple discourages WatchPaths because file system monitoring can miss changes.",
+        .launchdPlist, "")
     }
 
     switch job.keepAlive.mode {
     case .conditional:
       if !job.keepAlive.hasConditions {
-        add("keep-alive.empty", .warning,
-            "KeepAlive is conditional but no conditions are set.", .launchdPlist, "")
+        add(
+          "keep-alive.empty", .warning,
+          "KeepAlive is conditional but no conditions are set.", .launchdPlist, "")
       }
       if job.keepAlive.otherKeys["NetworkState"] != nil {
-        add("keep-alive.network-state", .warning,
-            "KeepAlive NetworkState is no longer implemented.", .launchdPlist, "")
+        add(
+          "keep-alive.network-state", .warning,
+          "KeepAlive NetworkState is no longer implemented.", .launchdPlist, "")
       }
       if job.keepAlive.otherKeys["OtherJobEnabled"] != nil {
-        add("keep-alive.other-job", .warning,
-            "Apple discourages KeepAlive OtherJobEnabled. It only checks whether the other job is loaded.",
-            .launchdPlist, "")
+        add(
+          "keep-alive.other-job", .warning,
+          "Apple discourages KeepAlive OtherJobEnabled. It only checks whether the other job is loaded.",
+          .launchdPlist, "")
       }
       if !job.keepAlive.pathStates.isEmpty {
-        add("keep-alive.path-state", .info,
-            "Apple recommends IPC over KeepAlive PathState because file system checks can race.",
-            .launchdPlist, "")
+        add(
+          "keep-alive.path-state", .info,
+          "Apple recommends IPC over KeepAlive PathState because file system checks can race.",
+          .launchdPlist, "")
       }
     case .always:
       if job.additionalKeys["EnablePressuredExit"] != nil {
-        add("keep-alive.pressured-exit", .warning,
-            "launchd ignores EnablePressuredExit when KeepAlive is always on.", .launchdPlist, "")
+        add(
+          "keep-alive.pressured-exit", .warning,
+          "launchd ignores EnablePressuredExit when KeepAlive is always on.", .launchdPlist, "")
       }
     case .off:
       break
@@ -508,8 +547,9 @@ enum Validator {
     add: (String, IssueSeverity, String, IssueSource, String) -> Void
   ) {
     if job.exitTimeOut == 0 {
-      add("exit-timeout.zero", .error,
-          "An ExitTimeOut of 0 means wait forever and can stall shutdown.", .launchdPlist, "")
+      add(
+        "exit-timeout.zero", .error,
+        "An ExitTimeOut of 0 means wait forever and can stall shutdown.", .launchdPlist, "")
     }
     if let throttle = job.throttleInterval, throttle < 0 {
       add("throttle.negative", .error, "ThrottleInterval cannot be negative.", .launchdPlist, "")
@@ -535,7 +575,7 @@ enum Validator {
     var absolutePaths: [(String, String)] = [
       ("WorkingDirectory", job.workingDirectory),
       ("StandardOutPath", job.standardOutPath),
-      ("StandardErrorPath", job.standardErrorPath)
+      ("StandardErrorPath", job.standardErrorPath),
     ]
     absolutePaths += job.watchPaths.map { ("WatchPaths", $0.value) }
     absolutePaths += job.queueDirectories.map { ("QueueDirectories", $0.value) }
@@ -546,17 +586,19 @@ enum Validator {
         add("path.absolute", .error, "\(key) must be an absolute path: \(path)", .launchdPlist, "\(key)-\(path)")
       }
       if isPrivacyProtected(path) {
-        add("path.privacy", .warning,
-            "\(path) is protected by macOS privacy controls. The job may be blocked from using it.",
-            .launchdPlist, "\(key)-\(path)")
+        add(
+          "path.privacy", .warning,
+          "\(path) is protected by macOS privacy controls. The job may be blocked from using it.",
+          .launchdPlist, "\(key)-\(path)")
       }
     }
 
     if job.context == .daemon {
       for path in [job.standardOutPath, job.standardErrorPath] where isUserWritableLocation(path) {
-        add("log.user-writable", .warning,
-            "\(path) is in a user-writable folder. A root daemon writing there can be abused with symlinks.",
-            .security, path)
+        add(
+          "log.user-writable", .warning,
+          "\(path) is in a user-writable folder. A root daemon writing there can be abused with symlinks.",
+          .security, path)
       }
     }
   }
@@ -611,14 +653,16 @@ enum Validator {
   ) {
     let severity: IssueSeverity = job.context == .userAgent ? .warning : .error
     for variable in job.environment where looksSecret(variable.name) {
-      add("secret.environment", severity,
-          "\(variable.name) looks like a secret. launchd plists are readable by every user on the Mac.",
-          .security, variable.name)
+      add(
+        "secret.environment", severity,
+        "\(variable.name) looks like a secret. launchd plists are readable by every user on the Mac.",
+        .security, variable.name)
     }
     for (index, argument) in job.argumentValues.enumerated() where looksSecret(argument) {
-      add("secret.argument", .warning,
-          "Argument \(index + 1) may contain a secret. Arguments are visible in the plist and in process listings.",
-          .security, String(index))
+      add(
+        "secret.argument", .warning,
+        "Argument \(index + 1) may contain a secret. Arguments are visible in the plist and in process listings.",
+        .security, String(index))
     }
   }
 
@@ -633,7 +677,7 @@ enum Validator {
       "HopefullyExitsLast": "HopefullyExitsLast is no longer implemented.",
       "TimeOut": "TimeOut is no longer implemented.",
       "LimitLoadToHosts": "LimitLoadToHosts is no longer supported.",
-      "LimitLoadFromHosts": "LimitLoadFromHosts is no longer supported."
+      "LimitLoadFromHosts": "LimitLoadFromHosts is no longer supported.",
     ]
     for key in job.additionalKeys.keys.sorted() {
       if let message = obsolete[key] {
@@ -641,23 +685,27 @@ enum Validator {
       }
     }
     if job.additionalKeys["BundleProgram"] != nil {
-      add("key.bundle-program", .error,
-          "BundleProgram only works for plists installed with SMAppService, not deployed plists.",
-          .launchdPlist, "")
+      add(
+        "key.bundle-program", .error,
+        "BundleProgram only works for plists installed with SMAppService, not deployed plists.",
+        .launchdPlist, "")
     }
     if job.additionalKeys["WaitForDebugger"] != nil {
-      add("key.wait-for-debugger", .warning,
-          "WaitForDebugger launches the job suspended. Remove it before deployment.", .launchdPlist, "")
+      add(
+        "key.wait-for-debugger", .warning,
+        "WaitForDebugger launches the job suspended. Remove it before deployment.", .launchdPlist, "")
     }
     if job.additionalKeys["RootDirectory"] != nil {
-      add("key.root-directory", .warning,
-          "Apple strongly discourages RootDirectory because system IPC may fail inside the jail.",
-          .launchdPlist, "")
+      add(
+        "key.root-directory", .warning,
+        "Apple strongly discourages RootDirectory because system IPC may fail inside the jail.",
+        .launchdPlist, "")
     }
     if job.additionalKeys["EnvironmentVariables"] != nil {
-      add("key.environment-types", .warning,
-          "EnvironmentVariables contains values that are not strings. launchd ignores them.",
-          .launchdPlist, "")
+      add(
+        "key.environment-types", .warning,
+        "EnvironmentVariables contains values that are not strings. launchd ignores them.",
+        .launchdPlist, "")
     }
   }
 
@@ -676,7 +724,9 @@ enum Validator {
   }
 
   static func isPrivacyProtected(_ path: String) -> Bool {
-    let markers = ["/Desktop", "/Documents", "/Downloads", "/Library/Mobile Documents", "/Pictures", "/Movies", "/Music"]
+    let markers = [
+      "/Desktop", "/Documents", "/Downloads", "/Library/Mobile Documents", "/Pictures", "/Movies", "/Music",
+    ]
     return (path.hasPrefix("/Users/") || path.hasPrefix("~/"))
       && markers.contains { path.contains($0) }
   }

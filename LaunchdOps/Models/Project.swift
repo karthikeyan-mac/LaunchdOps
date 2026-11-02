@@ -60,7 +60,8 @@ struct ProjectSettings: Codable, Hashable, Sendable {
     let savedName = try container.decodeIfPresent(String.self, forKey: .name) ?? defaults.name
     name = savedName == "Untitled" ? "" : savedName
     organization = try container.decodeIfPresent(String.self, forKey: .organization) ?? defaults.organization
-    let savedIdentifier = try container.decodeIfPresent(String.self, forKey: .packageIdentifier)
+    let savedIdentifier =
+      try container.decodeIfPresent(String.self, forKey: .packageIdentifier)
       ?? defaults.packageIdentifier
     packageIdentifier = savedIdentifier == "com.example.pkg.untitled" ? "" : savedIdentifier
     version = try container.decodeIfPresent(String.self, forKey: .version) ?? defaults.version
@@ -73,7 +74,8 @@ struct ProjectSettings: Codable, Hashable, Sendable {
     // Projects saved before this setting existed keep the build script they were exported with.
     packageOutput = try container.decodeIfPresent(PackageOutput.self, forKey: .packageOutput) ?? .buildScript
     notarizeAfterExport = try container.decodeIfPresent(Bool.self, forKey: .notarizeAfterExport) ?? false
-    includeLoginItemsProfile = try container.decodeIfPresent(Bool.self, forKey: .includeLoginItemsProfile)
+    includeLoginItemsProfile =
+      try container.decodeIfPresent(Bool.self, forKey: .includeLoginItemsProfile)
       ?? defaults.includeLoginItemsProfile
     includeScripts = try container.decodeIfPresent(Bool.self, forKey: .includeScripts) ?? true
     includeGuide = try container.decodeIfPresent(Bool.self, forKey: .includeGuide) ?? true
@@ -81,7 +83,8 @@ struct ProjectSettings: Codable, Hashable, Sendable {
     retiredLabels = try container.decodeIfPresent([String].self, forKey: .retiredLabels) ?? []
     publishedLabels = try container.decodeIfPresent([String].self, forKey: .publishedLabels) ?? []
     profileUUID = try container.decodeIfPresent(UUID.self, forKey: .profileUUID) ?? defaults.profileUUID
-    profilePayloadUUID = try container.decodeIfPresent(UUID.self, forKey: .profilePayloadUUID)
+    profilePayloadUUID =
+      try container.decodeIfPresent(UUID.self, forKey: .profilePayloadUUID)
       ?? defaults.profilePayloadUUID
   }
 

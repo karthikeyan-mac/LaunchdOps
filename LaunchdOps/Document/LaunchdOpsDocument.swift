@@ -132,7 +132,7 @@ enum ProjectPackage {
     return FileWrapper(directoryWithFileWrappers: [
       manifestName: FileWrapper(regularFileWithContents: try encoder.encode(manifest)),
       jobsFolder: FileWrapper(directoryWithFileWrappers: jobWrappers),
-      payloadFolder: FileWrapper(directoryWithFileWrappers: payloadWrappers)
+      payloadFolder: FileWrapper(directoryWithFileWrappers: payloadWrappers),
     ])
   }
 }

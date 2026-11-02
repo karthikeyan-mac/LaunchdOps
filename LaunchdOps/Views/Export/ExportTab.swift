@@ -177,7 +177,8 @@ struct ExportTab: View {
       )
       IncludeRow(
         title: "Deployment Guide",
-        detail: "README with steps to test, deploy, check and remove the jobs with any MDM, and the validation results.",
+        detail:
+          "README with steps to test, deploy, check and remove the jobs with any MDM, and the validation results.",
         systemImage: "book",
         fileType: ".md",
         isOn: $project.settings.includeGuide
@@ -317,7 +318,9 @@ struct ExportTab: View {
     } header: {
       Text("Background Task")
     } footer: {
-      Text("Payload files install in \(Project.servicesRoot)/\(project.settings.taskType.isEmpty ? "<task type>" : project.settings.taskType).")
+      Text(
+        "Payload files install in \(Project.servicesRoot)/\(project.settings.taskType.isEmpty ? "<task type>" : project.settings.taskType)."
+      )
     }
   }
 

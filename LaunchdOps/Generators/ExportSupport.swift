@@ -85,12 +85,13 @@ enum OutputOutline {
         let prefix = parts[...index].joined(separator: "/")
         guard seen.insert(prefix).inserted else { continue }
         let isFolder = index < parts.count - 1
-        result.append(OutlineLine(
-          path: prefix,
-          name: isFolder ? "\(parts[index])/" : parts[index],
-          depth: index + 1,
-          isFolder: isFolder
-        ))
+        result.append(
+          OutlineLine(
+            path: prefix,
+            name: isFolder ? "\(parts[index])/" : parts[index],
+            depth: index + 1,
+            isFolder: isFolder
+          ))
       }
     }
     return result
