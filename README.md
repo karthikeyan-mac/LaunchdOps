@@ -140,14 +140,20 @@ Example.launchdops/
   Jobs/<uuid>.plist   each job as a real launchd plist
   Payload/<uuid>      payload file contents
 ```
+## Found this useful?
 
+If this project, script, or anything I’ve shared has saved you some time or made your day a little easier, you can buy me a coffee⁠￼. ☕️
+
+[![Ko-Fi](https://img.shields.io/badge/Ko--fi-Support%20My%20Work-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/karthikeyanmac)
+
+---
 ## License
 
 LaunchdOps is released under the [MIT License](LICENSE).
 
 ## Acknowledgements
 
-Developed by Karthikeyan Marappan.
+Developed by [Karthikeyan Marappan](https://www.linkedin.com/in/bewithkarthi/).
 
 - Apple — SwiftUI framework
 - Jamf — Jamf Pro API documentation
